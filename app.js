@@ -26,6 +26,7 @@ preferences {
         input "presences", "capability.presenceSensor", title: "Presence", required: false, multiple: true
         input "batteries", "capability.battery", title: "Battery", required: false, multiple: true
         input "threeaxes", "capability.threeAxis", title: "3 Axis", required: false, multiple: true
+        input "lights", "capability.light", title: "Light", required: false, multiple: true
     }
 }
 
@@ -33,6 +34,11 @@ mappings {
 	path("/getDevices") {
     	action: [
         	GET: "listAllDevices"
+        ]
+    }
+    path("/getHubs") {
+    	action: [
+        	GET: "getHubInfo"
         ]
     }
     path("/:type") {
@@ -70,7 +76,7 @@ private device_to_json(device, type) {
         return;
     }
     def values = [:]
-    def json_dict = [id: device.id, label: device.label, type: type, value: values];
+    def json_dict = [id: device.id, label: device.label, type: type, typeName: device.getTypeName(), model: device.getModelName(), value: device.currentState(type)];
 
     def s = device.currentState(type)
     values['timestamp'] = s?.isoDate
@@ -120,7 +126,8 @@ def devices_for_type(type) {
         acceleration: accelerations,
         presence:     presences,
         battery:      batteries,
-        threeAxis:    threeaxes
+        threeAxis:    threeaxes,
+        light:		  lights
     ][type]
 }
 
@@ -131,11 +138,37 @@ def listDevices() {
 }
 
 def listAllDevices() {
-    log.debug "Updated with settingsss: ${settings}"
-    settings
+    def devices = settings
+    def keys = settings.keySet()
+    def devices_type_sing = ["switch",
+        	"motion",
+    		"temperature",
+    		"humidity",
+    		"contact",
+    		"acceleration",
+    		"presence",
+    		"battery",
+    		"threeAxis",
+            "light"]
+    def deviceList = []           
+    for (type in devices_type_sing) {
+    	def aux = devices_for_type(type).collect {
+     		device_to_json(it,type)
+     	}
+        if(aux != []) {
+        	deviceList.push(aux)
+        }
+    }
+    return deviceList
+    
+    // settings // This will return all devices
+    // switches.currentValue("switch") // Resturn current Value of switches
+   	// location.hubs // Get hub info
+   	// switches.getModelName() // Get Model of devices
+    // switches.getTypeName() // Name of Hue device type
 }
 
-void updateDevice() {
+def updateDevice() {
     def dev = devices_for_type(params.type).find { it.id == params.id }
     if (!dev) {
         httpError(404, "Device not found")
@@ -145,7 +178,9 @@ void updateDevice() {
     }
 }
 
-
+def getHubInfo () {
+	location.hubs
+}
 /* List of commands
  - on
  - off
