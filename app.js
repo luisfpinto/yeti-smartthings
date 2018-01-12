@@ -46,6 +46,11 @@ mappings {
             GET: "listDevices"
         ]
     }
+    path("/:type/:id/getStatus/") {
+    	action: [
+        	GET: "getStatus"
+        ]
+    }
     path("/:type/:id/:cmd") {
     	action: [
             GET: "updateDevice"
@@ -76,7 +81,7 @@ private device_to_json(device, type) {
         return;
     }
     def values = [:]
-    def json_dict = [id: device.id, label: device.label, type: type, typeName: device.getTypeName(), model: device.getModelName(), value: device.currentState(type)];
+    def json_dict = [id: device.id, label: device.label, type: type, typeName: device.getTypeName(), model: device.getModelName(),status: device.getStatus(), value: device.currentState(type)];
 
     def s = device.currentState(type)
     values['timestamp'] = s?.isoDate
@@ -181,8 +186,12 @@ def updateDevice() {
 def getHubInfo () {
 	location.hubs
 }
-/* List of commands
- - on
- - off
- - 
-*/
+
+def getStatus () {
+   	def status = devices_for_type(params.type).collect {
+        if(it.id == params.id) {
+        return it.getStatus()
+       } 
+    }
+    return status-null
+}
