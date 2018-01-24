@@ -22,11 +22,11 @@ preferences {
         input "temperatures", "capability.temperatureMeasurement", title: "Temperature", required: false, multiple: true
         input "humidities", "capability.relativeHumidityMeasurement", title: "Humidity", required: false, multiple: true
         input "contacts", "capability.contactSensor", title: "Contact", required: false, multiple: true
-        input "accelerations", "capability.accelerationSensor", title: "Acceleration", required: false, multiple: true
         input "presences", "capability.presenceSensor", title: "Presence", required: false, multiple: true
+        /*
+        input "accelerations", "capability.accelerationSensor", title: "Acceleration", required: false, multiple: true
         input "batteries", "capability.battery", title: "Battery", required: false, multiple: true
         input "threeaxes", "capability.threeAxis", title: "3 Axis", required: false, multiple: true
-        /*
         input "accelerationSensor", "capability.accelerationSensor", title: "Acceleration Sensor", required: false, multiple: true
 		input "alarm", "capability.alarm", title: "Alarm", required: false, multiple: true
 		input "battery", "capability.battery", title: "Battery", required: false, multiple: true
@@ -234,7 +234,8 @@ def getHubInfo () {
 def getStatus () {
    	def status = devices_for_type(params.type).collect {
         if(it.id == params.id) {
-        return it.getStatus()
+        // return it.getStatus()
+        return it.currentState(params.type).value
        } 
     }
     return status-null
@@ -263,7 +264,7 @@ def subscribeToEvents() {
  */
 def eventHandler(evt) {
     def state_changed = evt.isStateChange()
-    def webhookUrl = "https://fuzzy-satin.glitch.me/"
+    def webhookUrl = "https://surf-trigonometry.glitch.me/"
 	def json_body = [
             id: evt.deviceId, 
 			date: evt.isoDate,
