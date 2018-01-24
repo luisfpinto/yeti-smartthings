@@ -232,13 +232,19 @@ def getHubInfo () {
 }
 
 def getStatus () {
+	def reachable 
    	def status = devices_for_type(params.type).collect {
         if(it.id == params.id) {
-        // return it.getStatus()
+        reachable = it.getStatus()
         return it.currentState(params.type).value
        } 
     }
-    return status-null
+    status = status-null
+    def json_body = [
+			reachable: reachable,
+            value: status
+        ] 
+    return json_body
 }
 
 /* Subscribe to events function */
